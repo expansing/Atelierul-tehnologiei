@@ -20,9 +20,125 @@ const DEMO_GUIDES = {
 };
 const DEMO_VISUALS = global.DEMO_VISUALS;
 const EXPLANATION_CONTENT = global.EXPLANATION_CONTENT || {};
+const SUPPORTED_BLOCK_TYPES = new Set([
+  'callout', 'formula', 'steps', 'compare', 'table', 'truthTable', 'logicLab'
+]);
 console.log('Nivele:', LEVELS.length, '| Lectii:', L.length);
 const ids = new Set();
 let bad = 0;
+function problem(message) {
+  console.log(message);
+  bad++;
+}
+function isNonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+function validateVisual(lessonId) {
+  const visual = DEMO_VISUALS[lessonId];
+  if (!visual || typeof visual !== 'object') {
+    problem('Lipseste scena vizuala individuala: ' + lessonId);
+    return;
+  }
+  if (!isNonEmptyString(visual.kind) || !isNonEmptyString(visual.title) || !isNonEmptyString(visual.story)) {
+    problem('Scena vizuala are câmpuri text incomplete: ' + lessonId);
+  }
+  if (!Array.isArray(visual.objects) || visual.objects.length < 3 || visual.objects.some(object => !isNonEmptyString(object))) {
+    problem('Scena vizuala necesita cel putin 3 obiecte descrise: ' + lessonId);
+  }
+}
+function validateTerm(term, lessonId, index, seenNames) {
+  if (!term || typeof term !== 'object') {
+    problem('Termen invalid la lecția ' + lessonId + ', poziția ' + index);
+    return;
+  }
+  if (!Array.isArray(term.names) || term.names.length === 0 || term.names.some(name => !isNonEmptyString(name))) {
+    problem('Termenul fără nume este invalid la lecția ' + lessonId + ', poziția ' + index);
+  } else {
+    term.names.forEach(name => {
+      const clean = name.trim();
+      if (seenNames.has(clean.toLowerCase())) {
+        problem('Nume de termen duplicat: ' + clean + ' la lecția ' + lessonId);
+      }
+      seenNames.add(clean.toLowerCase());
+    });
+  }
+  if (!isNonEmptyString(term.definition) || term.definition.trim().length < 30) {
+    problem('Definiția termenului este prea scurtă la lecția ' + lessonId + ', poziția ' + index);
+  }
+}
+function validateCheck(check, lessonId, index) {
+  if (!check || typeof check !== 'object') {
+    problem('Întrebarea de verificare este invalidă la lecția ' + lessonId + ', poziția ' + index);
+    return;
+  }
+  if (!isNonEmptyString(check.q) || check.q.trim().length < 20) {
+    problem('Întrebarea de verificare este neclară la lecția ' + lessonId + ', poziția ' + index);
+  }
+  if (!Array.isArray(check.options) || check.options.length < 2 || check.options.some(option => !isNonEmptyString(option))) {
+    problem('Verificarea necesita cel putin doua opțiuni la lecția ' + lessonId + ', poziția ' + index);
+  } else if (!Number.isInteger(check.correct) || check.correct < 0 || check.correct >= check.options.length) {
+    problem('Indicele răspunsului corect este invalid la lecția ' + lessonId + ', poziția ' + index);
+  }
+  if (!isNonEmptyString(check.why) || check.why.trim().length < 20) {
+    problem('Explicația verificării este prea scurtă la lecția ' + lessonId + ', poziția ' + index);
+  }
+}
+function validateBlock(block, lessonId, index) {
+  if (!block || typeof block !== 'object') {
+    problem('Blocul de explicație este invalid la lecția ' + lessonId + ', poziția ' + index);
+    return;
+  }
+  if (!SUPPORTED_BLOCK_TYPES.has(block.type)) {
+    problem('Tip de bloc nepermis: ' + String(block.type) + ' la lecția ' + lessonId);
+  }
+  if (!isNonEmptyString(block.title)) {
+    problem('Blocul de explicație nu are titlu la lecția ' + lessonId + ', poziția ' + index);
+  }
+
+  if (block.type === 'callout') {
+    if (!isNonEmptyString(block.body) || block.body.trim().length < 30) {
+      problem('Callout-ul are conținut insuficient la lecția ' + lessonId);
+    }
+    if (block.tone !== undefined && !['info', 'warn', 'success'].includes(block.tone)) {
+      problem('Ton callout invalid la lecția ' + lessonId);
+    }
+  } else if (block.type === 'formula') {
+    if (!isNonEmptyString(block.formula) || !isNonEmptyString(block.body) || block.body.trim().length < 30) {
+      problem('Blocul formulă este incomplet la lecția ' + lessonId);
+    }
+  } else if (block.type === 'steps') {
+    if (!Array.isArray(block.steps) || block.steps.length === 0 || block.steps.some(step => !isNonEmptyString(step) || step.trim().length < 20)) {
+      problem('Blocul cu pași este invalid la lecția ' + lessonId);
+    }
+  } else if (block.type === 'compare') {
+    if (!Array.isArray(block.items) || block.items.length < 2 || block.items.some(item => !item || !isNonEmptyString(item.title) || !isNonEmptyString(item.body) || item.body.trim().length < 20)) {
+      problem('Blocul de comparație este invalid la lecția ' + lessonId);
+    }
+  } else if (block.type === 'table' || block.type === 'truthTable') {
+    if (!Array.isArray(block.headers) || block.headers.length === 0 || block.headers.some(header => !isNonEmptyString(header))) {
+      problem('Tabelul nu are anteturi valide la lecția ' + lessonId);
+    } else if (!Array.isArray(block.rows) || block.rows.length === 0 || block.rows.some(row => !Array.isArray(row) || row.length !== block.headers.length)) {
+      problem('Tabelul are rânduri cu lățimi diferite la lecția ' + lessonId + ': ' + block.title);
+    }
+  }
+
+  if (block.type === 'truthTable') {
+    const gate = String(block.gate || '').split(/\s*\/\s*/)[0];
+    const expected = gate === 'AND'
+      ? [[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 1]]
+      : gate === 'OR'
+        ? [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1]]
+        : gate === 'NOT'
+          ? [[0, 1], [1, 0]]
+          : null;
+    if (!expected || JSON.stringify(block.rows) !== JSON.stringify(expected)) {
+      problem('Tabela de adevăr incorectă: ' + lessonId + ', ' + block.gate);
+    }
+  }
+  if (block.type === 'logicLab' && lessonId !== '2.4') {
+    problem('Laborator logic permis numai la lecția 2.4: ' + lessonId);
+  }
+}
 const guideText = Object.values(DEMO_GUIDES).flat().join('\n');
 for (const typo of ['Demonstatia', 'Apesi', 'Sasiul', 'preciser', 'larghe', 'uiti', 'Afisul', 'Rabdarea', 'cât jurnal.txt', 'Serial.println(lumină)']) {
   if (guideText.includes(typo)) {
@@ -31,72 +147,50 @@ for (const typo of ['Demonstatia', 'Apesi', 'Sasiul', 'preciser', 'larghe', 'uit
   }
 }
 for (const l of L) {
-  if (ids.has(l.id)) { console.log('ID duplicat:', l.id); bad++; }
+  if (ids.has(l.id)) problem('ID duplicat: ' + l.id);
   ids.add(l.id);
-  for (const k of ['objectives', 'explanation', 'demo', 'experiment', 'project', 'questions', 'exercises', 'parent', 'pass'])
-    if (!l[k]) { console.log('Lipseste', k, 'la', l.id); bad++; }
-  if (!Array.isArray(l.explanation) || l.explanation.length < 3) {
-    console.log('Explicatie prea scurta (minimum 3 paragrafe):', l.id);
-    bad++;
+  for (const k of ['objectives', 'explanation', 'demo', 'experiment', 'project', 'questions', 'exercises', 'parent', 'pass']) {
+    if (!l[k]) problem('Lipsește ' + k + ' la ' + l.id);
   }
-  if (Array.isArray(l.explanation) && l.explanation.some(p => typeof p !== 'string' || p.trim().length < 80)) {
-    console.log('Explicatie neclara sau prea scurta:', l.id);
-    bad++;
+  if (!Array.isArray(l.explanation) || l.explanation.length < 3) {
+    problem('Explicație prea scurtă (minimum 3 paragrafe): ' + l.id);
+  } else if (l.explanation.some(paragraph => typeof paragraph !== 'string' || paragraph.trim().length < 80)) {
+    problem('Explicație neclară sau prea scurtă: ' + l.id);
   }
   if (!Array.isArray(DEMO_GUIDES[l.id]) || DEMO_GUIDES[l.id].length < 2) {
-    console.log('Lipseste ghidul de pregatire pentru demo:', l.id);
-    bad++;
+    problem('Lipsește ghidul de pregătire pentru demo: ' + l.id);
+  } else if (DEMO_GUIDES[l.id].some(paragraph => typeof paragraph !== 'string' || paragraph.trim().length < 80)) {
+    problem('Ghid de demo neclar sau prea scurt: ' + l.id);
   }
-  if (!DEMO_VISUALS[l.id] || !Array.isArray(DEMO_VISUALS[l.id].objects) || DEMO_VISUALS[l.id].objects.length < 3 || !DEMO_VISUALS[l.id].story) {
-    console.log('Lipseste scena vizuala individuala:', l.id);
-    bad++;
-  }
-  if (Array.isArray(DEMO_GUIDES[l.id]) && DEMO_GUIDES[l.id].some(p => typeof p !== 'string' || p.trim().length < 80)) {
-    console.log('Ghid de demo neclar sau prea scurt:', l.id);
-    bad++;
-  }
+
+  validateVisual(l.id);
+
   const explanationExtras = EXPLANATION_CONTENT[l.id];
   if (explanationExtras) {
+    const seenTermNames = new Set();
     if (!Array.isArray(explanationExtras.blocks)) {
-      console.log('Explicatie structurata invalida:', l.id);
-      bad++;
+      problem('Explicație structurată invalidă: ' + l.id);
     } else {
-      for (const block of explanationExtras.blocks) {
-        if (!block.type || !block.title || typeof block.title !== 'string') {
-          console.log('Bloc explicatie fara tip sau titlu:', l.id);
-          bad++;
-        }
-        if (block.type === 'table' || block.type === 'truthTable') {
-          if (!Array.isArray(block.headers) || !Array.isArray(block.rows) || block.rows.some(row => !Array.isArray(row) || row.length !== block.headers.length)) {
-            console.log('Tabel explicatie invalid:', l.id, block.title);
-            bad++;
-          }
-        }
-        if (block.type === 'truthTable') {
-          const gate = String(block.gate || '').split(/\s*\/\s*/)[0];
-          const expected = gate === 'AND'
-            ? [[0, 0, 0], [0, 1, 0], [1, 0, 0], [1, 1, 1]]
-            : gate === 'OR'
-              ? [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1]]
-              : gate === 'NOT'
-                ? [[0, 1], [1, 0]]
-                : null;
-          if (!expected || JSON.stringify(block.rows) !== JSON.stringify(expected)) {
-            console.log('Tabela de adevăr incorectă:', l.id, block.gate);
-            bad++;
-          }
-        }
-        if (block.type === 'logicLab' && l.id !== '2.4') {
-          console.log('Laborator logic permis numai la lecția 2.4:', l.id);
-          bad++;
-        }
+      explanationExtras.blocks.forEach((block, index) => validateBlock(block, l.id, index));
+    }
+    if (explanationExtras.terms !== undefined) {
+      if (!Array.isArray(explanationExtras.terms)) {
+        problem('Lista de termeni este invalidă: ' + l.id);
+      } else {
+        explanationExtras.terms.forEach((term, index) => validateTerm(term, l.id, index, seenTermNames));
       }
     }
-    if (explanationExtras.checks && !Array.isArray(explanationExtras.checks)) {
-      console.log('Verificare structurată invalidă:', l.id);
-      bad++;
+    if (explanationExtras.checks !== undefined) {
+      if (!Array.isArray(explanationExtras.checks)) {
+        problem('Verificare structurată invalidă: ' + l.id);
+      } else {
+        explanationExtras.checks.forEach((check, index) => validateCheck(check, l.id, index));
+      }
     }
   }
+}
+for (const lessonId of Object.keys(EXPLANATION_CONTENT)) {
+  if (!ids.has(lessonId)) problem('Conținut explicativ pentru lecție inexistentă: ' + lessonId);
 }
 const lesson24 = EXPLANATION_CONTENT['2.4'];
 if (!lesson24 || !Array.isArray(lesson24.terms) || lesson24.terms.length < 8) {

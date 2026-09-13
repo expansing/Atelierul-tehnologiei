@@ -163,12 +163,6 @@ const SECTIONS = [
   ["exercitii", "✏️ Exerciții"], ["parinte", "👨‍👩‍👧 Ghid părinte"], ["criterii", "🏁 Criterii de trecere"]
 ];
 
-function explanationSentence(text) {
-  const clean = String(text).trim();
-  const match = clean.match(/^([^.!?]*(?:[.!?]))/);
-  const sentence = match ? match[1].replace(/[.!?]+$/, "") : clean;
-  return sentence.length > 110 ? sentence.slice(0, 107).trimEnd() + "…" : sentence;
-}
 function explanationHeading(text, index) {
   const clean = String(text).trim();
   const match = clean.match(/^([^:.!?—-]{2,70})[:.!?—-]/);
@@ -449,9 +443,10 @@ function renderLogicLab(host) {
       const active = state[key] === 1;
       button.classList.toggle("is-on", active);
       button.textContent = `${key} = ${state[key]}`;
+      button.disabled = gate.value === "NOT" && key === "B";
     });
   }
-    buttons.forEach(button => button.addEventListener("click", () => {
+  buttons.forEach(button => button.addEventListener("click", () => {
       const key = button.dataset.logicInput;
       if (gate.value !== "NOT" || key !== "B") state[key] = state[key] === 1 ? 0 : 1;
       update();
