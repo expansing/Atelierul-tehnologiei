@@ -5,7 +5,10 @@
 
 const LESSONS = [...LESSONS_A, ...LESSONS_B, ...LESSONS_C, ...LESSONS_D];
 const DEMO_GUIDES = {
-  ...DEMO_GUIDES_A, ...DEMO_GUIDES_B, ...DEMO_GUIDES_C, ...DEMO_GUIDES_D
+  ...(typeof DEMO_GUIDES_A !== "undefined" ? DEMO_GUIDES_A : {}),
+  ...(typeof DEMO_GUIDES_B !== "undefined" ? DEMO_GUIDES_B : {}),
+  ...(typeof DEMO_GUIDES_C !== "undefined" ? DEMO_GUIDES_C : {}),
+  ...(typeof DEMO_GUIDES_D !== "undefined" ? DEMO_GUIDES_D : {})
 };
 const PROGRESS_KEY = "at_progress";
 const THEME_KEY = "at_theme";
@@ -163,17 +166,6 @@ const SECTIONS = [
   ["exercitii", "✏️ Exerciții"], ["parinte", "👨‍👩‍👧 Ghid părinte"], ["criterii", "🏁 Criterii de trecere"]
 ];
 
-function explanationHeading(text, index) {
-  const clean = String(text).trim();
-  const match = clean.match(/^([^:.!?—-]{2,70})[:.!?—-]/);
-  return match ? match[1] : `Ideea ${index + 1}`;
-}
-function visualIcon(object) {
-  return String(object).match(/^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})/u)?.[0] || "💡";
-}
-function visualLabel(object) {
-  return String(object).replace(/^\S+\s*/, "").trim();
-}
 function escapeRegExp(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 function highlightExplanationTerms(text) {
   const lessonId = window.__currentLesson?.id;
@@ -188,105 +180,17 @@ function highlightExplanationTerms(text) {
   const pattern = new RegExp(`\\b(?:${names.map(escapeRegExp).join("|")})\\b`, "gi");
   return esc(text).replace(pattern, match => `<strong class="term-highlight">${match}</strong>`);
 }
-function renderStoryScene(visual, activeIndex) {
-  const objects = Array.isArray(visual?.objects) && visual.objects.length ? visual.objects : ["💡 Idee"];
-  const active = Math.max(0, Math.min(activeIndex, objects.length - 1));
-  const positions = objects.map((_, index) => {
-    const x = objects.length === 1 ? 280 : 92 + index * (376 / (objects.length - 1));
-    return { x, y: index % 2 ? 112 : 168 };
-  });
-  const nodes = objects.map((object, index) => {
-    const { x, y } = positions[index];
-    const label = visualLabel(object).slice(0, 18);
-    const isActive = index === active;
-    return `<g class="story-node ${isActive ? "is-active" : ""}" transform="translate(${x}, ${y})">
-      <circle class="story-node-ring" r="${isActive ? 43 : 34}"></circle>
-      <circle class="story-node-circle" r="${isActive ? 34 : 27}"></circle>
-      <text class="story-node-icon" y="9">${esc(visualIcon(object))}</text>
-      <text class="story-node-label" y="57">${esc(label)}</text>
-    </g>${index < objects.length - 1 ? `<path class="story-route-arrow" d="M ${positions[index].x + 48} ${positions[index].y} Q ${(positions[index].x + positions[index + 1].x) / 2} ${positions[index].y - 34} ${positions[index + 1].x - 48} ${positions[index + 1].y}"></path>` : ""}`;
-  }).join("");
-  const activeObject = objects[active];
-  const kind = String(visual?.kind || "idea").toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  return `<svg class="story-svg story-svg-${esc(kind)}" viewBox="0 0 560 245" role="img" aria-label="${esc(visual?.title || "Harta vizuală a lecției")}">
-    <defs>
-      <linearGradient id="story-sky" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stop-color="var(--primary)" stop-opacity=".18"></stop>
-        <stop offset="1" stop-color="var(--accent)" stop-opacity=".14"></stop>
-      </linearGradient>
-    </defs>
-    <rect class="story-sky" x="8" y="8" width="544" height="229" rx="24"></rect>
-    <circle class="story-spark story-spark-one" cx="490" cy="38" r="8"></circle>
-    <circle class="story-spark story-spark-two" cx="68" cy="58" r="5"></circle>
-    <path class="story-route" d="M 42 184 C 130 82, 190 210, 280 132 S 438 70, 518 158"></path>
-    ${nodes}
-    <g class="story-hero" transform="translate(${positions[active].x}, ${positions[active].y - 64})">
-      <circle r="22"></circle>
-      <text y="9">${esc(visualIcon(activeObject))}</text>
-    </g>
-  </svg>`;
-}
-function renderStoryObjectChips(visual, activeIndex) {
-  const objects = Array.isArray(visual?.objects) && visual.objects.length ? visual.objects : ["💡 Idee"];
-  return objects.map((object, index) => `<span class="story-object-chip ${index === activeIndex ? "is-active" : ""}"><span>${esc(visualIcon(object))}</span>${esc(visualLabel(object))}</span>`).join("");
-}
-function renderExplanationStory(l) {
-  const visual = DEMO_VISUALS[l.id] || { kind: "idea", title: "Harta lecției", objects: ["💡 Idee"], story: "Urmărește cum se transformă o întrebare într-o explicație." };
-  const paragraphs = l.explanation || [];
-  const terms = (typeof EXPLANATION_CONTENT !== "undefined" ? EXPLANATION_CONTENT[l.id]?.terms : []) || [];
-  return `<div class="explanation-section explanation-story">
-    <div class="explanation-kicker">🧭 1 · Povestea lecției</div>
-    <h2>Transformă informația într-o hartă de explorat</h2>
-    <p class="explanation-lead">Toate ideile sunt vizibile de la început. Atinge un pas ca să muți personajul pe hartă și să vezi cum se leagă explicația de scenă.</p>
-    <div class="story-adventure">
-      <div class="story-stage" data-story-stage>
-        <div class="story-stage-art" data-story-art>${renderStoryScene(visual, 0)}</div>
-        <div class="story-stage-copy">
-          <span class="story-stage-step" data-story-step>🚩 Pasul 1 din ${paragraphs.length}</span>
-          <strong data-story-title>${esc(explanationHeading(paragraphs[0] || "", 0))}</strong>
-          <p data-story-text>${highlightExplanationTerms(paragraphs[0] || "")}</p>
-          <div class="story-object-chips" data-story-objects>${renderStoryObjectChips(visual, 0)}</div>
-          <p class="story-stage-note">🗺️ ${esc(visual.story)}</p>
-        </div>
-      </div>
-      <div class="story-path" role="group" aria-label="Pașii poveștii lecției">
-        ${paragraphs.map((paragraph, i) => `<button type="button" class="story-path-step ${i === 0 ? "is-active" : ""}" data-story-step-button="${i}" aria-pressed="${i === 0}"><span>${esc(visualIcon(visual.objects?.[i] || "💡"))}</span><b>${i + 1}</b><small>${esc(explanationHeading(paragraph, i))}</small></button>`).join("")}
-      </div>
-      <div class="story-stops">
-        ${paragraphs.map((paragraph, i) => {
-          const stopTerms = terms.filter((_, termIndex) => termIndex % Math.max(paragraphs.length, 1) === i).slice(0, 3);
-          return `<article class="story-stop ${i === 0 ? "is-active" : ""}" data-story-stop="${i}">
-            <div class="story-stop-marker"><span>${esc(visualIcon(visual.objects?.[i] || "💡"))}</span><b>${i + 1}</b></div>
-            <div class="story-stop-content"><h3>${esc(explanationHeading(paragraph, i))}</h3><p>${highlightExplanationTerms(paragraph)}</p>${stopTerms.length ? `<div class="story-term-tags">${stopTerms.map(term => term.names.slice(0, 2).map(name => `<span>${esc(name)}</span>`).join("")).join("")}</div>` : ""}</div>
-          </article>`;
-        }).join("")}
-      </div>
-    </div>
+function renderExplanationCopy(l) {
+  const paragraphs = Array.isArray(l.explanation) ? l.explanation : [];
+  const copy = paragraphs.length
+    ? paragraphs.map(paragraph => `<p>${highlightExplanationTerms(paragraph)}</p>`).join("")
+    : `<p class="explanation-lead">Explicația acestei lecții va fi adăugată aici.</p>`;
+  return `<div class="explanation-section explanation-copy">
+    <div class="explanation-kicker">📖 1 · Explicația completă</div>
+    <h2>Citește și explică cu voce tare</h2>
+    <p class="explanation-lead">Toate ideile sunt aici, în ordinea lor. Nu trebuie să alegi un pas: parcurge textul, apoi treci la demo.</p>
+    <div class="explanation-paragraphs">${copy}</div>
   </div>`;
-}
-function bindExplanationStory(host, l) {
-  const visual = DEMO_VISUALS[l.id] || { objects: ["💡 Idee"], story: "" };
-  const buttons = [...host.querySelectorAll("[data-story-step-button]")];
-  const stops = [...host.querySelectorAll("[data-story-stop]")];
-  const art = host.querySelector("[data-story-art]");
-  const stepLabel = host.querySelector("[data-story-step]");
-  const title = host.querySelector("[data-story-title]");
-  const text = host.querySelector("[data-story-text]");
-  const objectChips = host.querySelector("[data-story-objects]");
-  function select(index) {
-    const paragraph = l.explanation?.[index] || "";
-    buttons.forEach((button, i) => {
-      button.classList.toggle("is-active", i === index);
-      button.setAttribute("aria-pressed", String(i === index));
-    });
-    stops.forEach((stop, i) => stop.classList.toggle("is-active", i === index));
-    if (art) art.innerHTML = renderStoryScene(visual, index);
-    if (stepLabel) stepLabel.textContent = `🚩 Pasul ${index + 1} din ${l.explanation.length}`;
-    if (title) title.textContent = explanationHeading(paragraph, index);
-    if (text) text.innerHTML = highlightExplanationTerms(paragraph);
-    if (objectChips) objectChips.innerHTML = renderStoryObjectChips(visual, index);
-  }
-  buttons.forEach(button => button.addEventListener("click", () => select(+button.dataset.storyStepButton)));
 }
 function guideHeading(text, index) {
   const clean = String(text).trim();
@@ -325,64 +229,6 @@ function renderGuideGlossary(l) {
       ${guideCards.length ? `<div class="term-group-title">🧭 Ghidul demo-ului, pas cu pas</div><div class="term-grid">${guideCards.join("")}</div>` : ""}
     </div>
   </div>`;
-}
-function renderDemoPreview(l) {
-  const demo = l.demo || {};
-  let body = "";
-  if (demo.type === "flow") {
-    const steps = demo.steps || [];
-    body = `<div class="preview-flow">${steps.map((step, i) => `<button class="preview-step" data-preview-step="${i}"><span>${i + 1}</span>${esc(step.label)}</button>`).join("")}</div>
-      <div class="preview-info" id="preview-info">Alege un pas ca să vezi ce se întâmplă în demo.</div>`;
-  } else if (demo.type === "binary") {
-    body = `<div class="preview-bits">${[8, 4, 2, 1].map(weight => `<button class="preview-bit" data-preview-bit="${weight}"><b>0</b><small>${weight}</small></button>`).join("")}</div>
-      <div class="preview-info">Valoare: <strong id="preview-binary-value">0</strong> · atinge un bit ca să îl aprinzi.</div>`;
-  } else if (demo.type === "classify") {
-    const zones = demo.zones || [];
-    const items = demo.items || [];
-    body = `<div class="preview-zones">${zones.map((zone, i) => `<div class="preview-zone"><strong>${esc(zone)}</strong><span>${items.filter(item => item.zone === i).map(item => esc(item.label)).join(" · ") || "Așteaptă alegerea ta"}</span></div>`).join("")}</div>
-      <div class="preview-info">Mai întâi ghicește categoria, apoi verifică în demo.</div>`;
-  } else if (demo.type === "quiz") {
-    const q = (demo.questions || [])[0];
-    body = q ? `<div class="preview-question">${esc(q.q)}</div><div class="preview-options">${q.opts.map((option, i) => `<button data-preview-answer="${i}">${esc(option)}</button>`).join("")}</div><div class="preview-info" id="preview-quiz-info">Răspunde fără să sari la demo — explică de ce ai ales.</div>` : `<div class="preview-info">Demo-ul conține întrebări de verificat pas cu pas.</div>`;
-  }
-  if (!body) return "";
-  return `<div class="explanation-section">
-    <div class="explanation-kicker">🔭 3 · Predicții pentru demo</div>
-    <h2>Fă o predicție înainte să atingi butoanele</h2>
-    <div class="demo-preview">${body}</div>
-  </div>`;
-}
-function bindDemoPreview(host) {
-  const steps = host.querySelectorAll("[data-preview-step]");
-  steps.forEach(step => step.addEventListener("click", () => {
-    const demo = window.__currentLesson?.demo || {};
-    const info = host.querySelector("#preview-info");
-    const selected = +step.dataset.previewStep;
-    steps.forEach(item => item.classList.toggle("active", item === step));
-    if (info) info.textContent = (demo.steps?.[selected]?.info) || "Ai ales un pas al demo-ului.";
-  }));
-  const bits = host.querySelectorAll("[data-preview-bit]");
-  bits.forEach(bit => bit.addEventListener("click", () => {
-    const next = bit.querySelector("b").textContent === "0" ? "1" : "0";
-    bit.querySelector("b").textContent = next;
-    bit.classList.toggle("on", next === "1");
-    const value = [...bits].reduce((sum, item) => sum + (item.querySelector("b").textContent === "1" ? +item.dataset.previewBit : 0), 0);
-    const output = host.querySelector("#preview-binary-value");
-    if (output) output.textContent = value;
-  }));
-  const answers = host.querySelectorAll("[data-preview-answer]");
-  answers.forEach(answer => answer.addEventListener("click", () => {
-    const demo = window.__currentLesson?.demo || {};
-    const q = (demo.questions || [])[0];
-    const info = host.querySelector("#preview-quiz-info");
-    const chosen = +answer.dataset.previewAnswer;
-    answers.forEach(item => {
-      item.disabled = true;
-      item.classList.toggle("correct", +item.dataset.previewAnswer === q.correct);
-      item.classList.toggle("wrong", +item.dataset.previewAnswer === chosen && chosen !== q.correct);
-    });
-    if (info) info.textContent = `${chosen === q.correct ? "✅ Corect!" : "🤔 Mai gândește-te."} ${q.why}`;
-  }));
 }
 function renderSpecialBlocks(l) {
   const extras = (typeof EXPLANATION_CONTENT !== "undefined" ? EXPLANATION_CONTENT : {})[l.id] || {};
@@ -456,14 +302,11 @@ function renderLogicLab(host) {
 }
 function renderExplanation(l, host) {
   window.__currentLesson = l;
-  host.innerHTML = `<div class="explanation-hero"><div class="explanation-hero-icon">${esc(l.icon)}</div><div><div class="explanation-kicker">📖 Explicație interactivă</div><h2>${esc(l.title)}</h2><p>Parcurge pe rând: poveste → termeni → predicție → laborator → verificare.</p></div></div>
-    ${renderExplanationStory(l)}
+  host.innerHTML = `<div class="explanation-hero"><div class="explanation-hero-icon">${esc(l.icon)}</div><div><div class="explanation-kicker">📖 Explicație interactivă</div><h2>${esc(l.title)}</h2><p>Parcurge pe rând: explicație → termeni → laborator → verificare.</p></div></div>
+    ${renderExplanationCopy(l)}
     ${renderGuideGlossary(l)}
-    ${renderDemoPreview(l)}
     ${renderSpecialBlocks(l)}
     ${renderExplanationChecks(l)}`;
-  bindExplanationStory(host, l);
-  bindDemoPreview(host);
   bindExplanationChecks(host);
   renderLogicLab(host);
 }
@@ -575,78 +418,13 @@ function renderDemo(demo, host, lessonId) {
   const visual = DEMO_VISUALS[lessonId];
   host.innerHTML = visual ? renderVisualStory(visual) + '<div class="demo-engine"></div>' : '<div class="demo-engine"></div>';
   const engine = host.querySelector(".demo-engine");
-  if (demo.type === "flow") renderFlow(demo, engine);
+  if (demo.type === "flow") renderFlow(demo, engine, visual);
   else if (demo.type === "binary") renderBinary(demo, engine);
   else if (demo.type === "quiz") renderQuiz(demo, engine);
   else if (demo.type === "classify") renderClassify(demo, engine);
 }
 
-function renderVisualStory(visual) {
-  return `<div class="individual-scene" aria-label="${esc(visual.title)}" role="img">
-    <div class="scene-heading"><span class="scene-spark">✦</span><strong>${esc(visual.title)}</strong><span class="scene-hint">privește ce se schimbă</span></div>
-    <div class="scene-stage">
-      ${visual.objects.map((object, index) => `<div class="scene-object scene-object-${index}"><span class="scene-object-icon">${esc(object.match(/^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})/u)?.[0] || "•")}</span><span>${esc(object.replace(/^\S+\s*/, ""))}</span></div>${index < visual.objects.length - 1 ? '<span class="scene-flow-line" aria-hidden="true"><i></i></span>' : ""}`).join("")}
-    </div>
-    <p class="scene-story">${esc(visual.story)}</p>
-  </div>`;
-}
-
 /* --- FLOW: diagramă animată pas cu pas --- */
-function renderFlow(demo, host) {
-  const firstIcon = label => (label.match(/^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})/u) || ["💡"])[0];
-  host.innerHTML = `
-    <div class="flow-demo">
-      ${demo.steps.map((s, i) => `
-        <div class="flow-node-wrap">
-          ${i ? '<span class="flow-arrow" aria-hidden="true">→</span>' : ""}
-          <button class="flow-step" data-i="${i}" aria-label="Pasul ${i + 1}: ${esc(s.label)}">
-            <span class="flow-number">${i + 1}</span>
-            <span class="flow-label">${esc(s.label)}</span>
-          </button>
-        </div>`).join("")}
-    </div>
-    <div class="flow-info" id="flow-info">👆 Apasă „Pornește” și urmărește cum trece informația de la intrare la rezultat.</div>
-    <div style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap">
-      <button class="btn btn-primary" id="flow-play">▶️ Pornește</button>
-      <button class="btn btn-ghost" id="flow-reset">🔄 Reset</button>
-    </div>`;
-  const steps = [...host.querySelectorAll(".flow-step")];
-  const info = host.querySelector("#flow-info");
-  const storyObjects = host.parentElement.querySelectorAll(".scene-object");
-  let timer = null;
-  function showStep(i) {
-    const step = demo.steps[i];
-    steps.forEach((item, index) => item.classList.toggle("lit", index === i));
-    storyObjects.forEach((item, index) => item.classList.toggle("scene-active", index === i % storyObjects.length));
-    info.textContent = step.info;
-  }
-  function reset() {
-    clearInterval(timer); timer = null;
-    steps.forEach(s => s.classList.remove("lit"));
-    storyObjects.forEach(item => item.classList.remove("scene-active"));
-    info.textContent = "👆 Apasă „Pornește” și urmărește cum trece informația de la intrare la rezultat.";
-    host.querySelector("#flow-play").disabled = false;
-  }
-  host.querySelector("#flow-play").addEventListener("click", e => {
-    reset(); e.target.disabled = true;
-    let i = 0;
-    const tick = () => {
-      if (i >= steps.length) { e.target.disabled = false; clearInterval(timer); return; }
-      showStep(i);
-      i++;
-    };
-    tick();
-    timer = setInterval(tick, 2600);
-  });
-  steps.forEach((s, i) => s.addEventListener("click", () => {
-    clearInterval(timer);
-    showStep(i);
-    host.querySelector("#flow-play").disabled = false;
-  }));
-  host.querySelector("#flow-reset").addEventListener("click", reset);
-}
-
-/* --- BINARY: convertor interactiv --- */
 function renderBinary(demo, host) {
   const weights = [8, 4, 2, 1];
   let state = [0, 0, 0, 0], target = null;
