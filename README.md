@@ -13,8 +13,12 @@ Site-ul este static, dar trebuie deschis printr-un server local. Astfel toate pa
 python3 -m http.server 8877
 ```
 
+Pentru diagnostic local, adaugă `?debug=1` la orice pagină. Panoul afișează numai local numărul de niveluri și lecții, progresul, tema și runtime-ul browserului; nu trimite date nicăieri.
+
 3. Deschide `http://localhost:8877` în browser.
 4. Oprește serverul cu `Ctrl+C` când ai terminat.
+
+Progresul este salvat local în browser. Pe pagina principală îl poți exporta într-un fișier JSON, importa pe alt browser sau reseta cu confirmare. Nu este trimis către un server.
 
 Pe Linux, dacă `python3` nu este instalat, instalează Python 3 din managerul de pachete al distribuției. Nu este nevoie de Node.js pentru folosirea site-ului; Node.js este folosit doar pentru validarea conținutului de către autor.
 
@@ -26,7 +30,22 @@ Din folderul proiectului rulează:
 node validate-data.js
 ```
 
+Comenzile echivalente din proiect sunt:
+
+```bash
+npm run check:syntax
+npm run validate
+npm run smoke:static
+npm run smoke:browser
+npm run quality
+npm run check
+```
+
+`smoke:browser` folosește Playwright și Chromium; după instalarea dependențelor rulează `npx playwright install chromium` o singură dată. Celelalte scripturi folosesc doar Node.js.
+
 Scriptul verifică cele 12 niveluri, cele 69 de lecții, câmpurile obligatorii, explicațiile și ghidul pregătitor pentru fiecare demonstrație.
+
+Validatorul rulează și pe Node.js 12 sau mai nou și verifică suplimentar tipurile de demo, obiectivele, legătura explicită dintre explicație și demo, pașii de experiment/proiect, criteriile de trecere, ortografia textului pedagogic, alinierea etichetelor vizuale și metadatele fiecărui nivel: vârstă orientativă, dificultate, prerechizite, supraveghere și risc. Vârstele afișate sunt orientative, nu limite de acces. Un rezultat invalid încheie comanda cu cod de eroare.
 
 ## Materiale de bază
 
@@ -67,5 +86,24 @@ Acestea acoperă majoritatea lecțiilor din primele șase niveluri:
 - `level.html`: lista de lecții pentru un nivel.
 - `lesson.html`: explicație, ghid înainte de demo, demonstrație, experiment, proiect și criterii de trecere.
 - `assets/js/data-lessons-*.js`: conținutul lecțiilor.
+- `assets/js/data-index.js`: indexul comun care leagă lecțiile și ghidurile înaintea motorului UI.
+- `assets/js/progress-state.js`: progresul local, criteriile și export/import.
+- `assets/js/ui-utils.js`: temă, URL-uri, escaping, reveal și ecrane de rutare invalidă.
+- `assets/js/home-render.js`: randarea nivelurilor și progresului de pe pagina principală.
+- `assets/js/level-render.js`: randarea antetului unui nivel și a listei de lecții.
+- `assets/js/lesson-actions.js`: finalizarea lecției și navigarea anterioară/următoare.
+- `assets/js/demo-render.js`: selectarea engine-ului pentru fiecare tip de demo.
+- `assets/js/binary-engine.js`: engine-ul interactiv pentru numere binare.
+- `assets/js/quiz-engine.js`: engine-ul interactiv pentru întrebări și scoruri.
+- `assets/js/classify-engine.js`: engine-ul interactiv pentru sortarea în zone.
+- `assets/js/flow-engine.js`: engine-ul interactiv pentru pași, animație și scene de proces.
+- `assets/js/lesson-tabs.js`: taburile lecției, focusul și navigarea cu tastatura.
+- `assets/js/logic-engine.js`: laboratorul interactiv pentru porți logice.
+- `assets/js/explanation-render.js`: orchestrarea randării explicației interactive.
+- `assets/js/diagnostics.js`: panoul de diagnostic local activat prin `?debug=1`.
+- `assets/js/explanation-checks.js`: verificările interactive din explicația lecției.
+- `assets/js/special-blocks.js`: blocuri de formule, pași, comparații, tabele și logic lab.
+- `assets/js/lesson-render.js`: intrarea publică pentru randarea paginii de lecție.
+- `assets/js/explanation-text.js`: paragrafele, ghidurile și glosarul explicației.
 - `assets/js/demo-guides-*.js`: explicațiile obligatorii care pregătesc fiecare demo.
 - `assets/data/audit-pedagogic.md`: standardul și auditul pedagogic al curriculumului.

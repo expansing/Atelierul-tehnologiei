@@ -1,0 +1,20 @@
+{
+  "name": "atelierul-tehnologiei",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site educațional static pentru învățarea practică a tehnologiei.",
+  "engines": {
+    "node": ">=12"
+  },
+  "scripts": {
+    "validate": "node validate-data.js",
+    "smoke:static": "node smoke-static.js",
+    "smoke:browser": "node browser-smoke.js",
+    "quality": "node quality-check.js",
+    "check:syntax": "node --check assets/js/app.js && node --check assets/js/concept-scenes.js && node --check assets/js/data-index.js && node --check assets/js/progress-state.js && node --check assets/js/ui-utils.js && node --check assets/js/home-render.js && node --check assets/js/level-render.js && node --check assets/js/lesson-actions.js && node --check assets/js/demo-render.js && node --check assets/js/binary-engine.js && node --check assets/js/quiz-engine.js && node --check assets/js/classify-engine.js && node --check assets/js/flow-engine.js && node --check assets/js/lesson-tabs.js && node --check assets/js/logic-engine.js && node --check assets/js/explanation-render.js && node --check assets/js/explanation-checks.js && node --check assets/js/diagnostics.js && node --check assets/js/special-blocks.js && node --check assets/js/explanation-text.js && node --check assets/js/lesson-render.js && node --check assets/js/data-levels.js && node --check assets/js/demo-visuals.js && node --check assets/js/explanation-content.js && node --check assets/js/data-lessons-a.js && node --check assets/js/data-lessons-b.js && node --check assets/js/data-lessons-c.js && node --check assets/js/data-lessons-d.js && node --check assets/js/demo-guides-a.js && node --check assets/js/demo-guides-b.js && node --check assets/js/demo-guides-c.js && node --check assets/js/demo-guides-d.js",
+    "check": "npm run check:syntax && npm run quality && npm run smoke:static && npm run validate"
+  },
+  "devDependencies": {
+    "playwright": "^1.20.0"
+  }
+}

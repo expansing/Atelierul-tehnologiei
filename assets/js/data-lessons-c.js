@@ -13,7 +13,7 @@ const LESSONS_C = [
     "De ce sunt mai multe etape? Oamenii preferă nume, routerele lucrează cu adrese, iar pagina este alcătuită din mai multe fișiere. Browserul caută mai întâi un răspuns DNS păstrat local, apoi trimite cererea prin router și furnizor către server. Serverul trimite HTML, CSS, imagini și alte resurse.",
     "Exemplul pas cu pas este: 1) scrii adresa, 2) DNS o traduce în IP, 3) routerul alege următorul drum, 4) serverul primește cererea, 5) răspunsul se întoarce în pachete, 6) browserul reunește fișierele și desenează pagina. O imagine poate cere încă o cerere după ce HTML-ul a sosit.",
     "O limită importantă este că nu vezi întotdeauna traseul real și nu poți deduce locul exact al unui server doar din IP. Unele routere nu răspund la diagnostice, iar o pagină lentă poate fi cauzată de Wi-Fi, server sau conținut. Nu testa adrese suspecte și nu publica IP-uri sau detalii ale rețelei casei.",
-    "Demo-ul „Călătoria unui click pe www.exemplu.ro” arată exact ordinea tu → browser → DNS → router → internet → server → pagină. Apasă fiecare etapă și explică ce informație intră și ce iese; apoi compară cu `nslookup`, `ping` și `traceroute` din experiment."
+    "Demo-ul „Călătoria unui click pe www.exemplu.ro” arată exact ordinea tu → browser → DNS → router → internet → server → pagină. Apasă fiecare etapă și explică fiecare pas cu cuvintele tale, apoi desenează diagrama completă a unei vizite pe un site. Compară după aceea cu `nslookup`, `ping` și `traceroute` din experiment."
   ],
   demo: {
     type: "flow",
@@ -84,7 +84,7 @@ const LESSONS_C = [
     "Avem nevoie de DNS fiindcă oamenii rețin nume, nu șiruri de cifre, iar serverele se pot muta sau multiplica. Browserul caută întâi în cache, memoria temporară. Dacă nu găsește răspunsul, resolverul întreabă ierarhia DNS, iar rezultatul are un TTL, adică o perioadă după care trebuie verificat din nou.",
     "Urmărește cererea: browserul cere IP-ul, resolverul întreabă serverele potrivite pentru extensie și domeniu, apoi primește o înregistrare. `nslookup exemplu.ro` poate afișa adresele observate acum. Unele domenii au mai multe IP-uri pentru distribuirea traficului și disponibilitate.",
     "DNS nu dovedește singur că un site este autentic: un răspuns poate fi modificat sau un domeniu poate imita alt nume. HTTPS verifică certificatul și protejează conexiunea, dar tu trebuie să citești domeniul complet. Nu modifica `/etc/hosts`, DNS-ul routerului sau setările rețelei fără un adult.",
-    "În demo-ul „Interogarea DNS pas cu pas”, urmărește cache → resolver → ierarhie → răspuns → risc. Experimentul folosește numai domenii publice cunoscute și observare fără modificări; leagă fiecare rezultat `nslookup` de etapa corectă din diagramă."
+    "În demo-ul „Interogarea DNS pas cu pas”, urmărește cache → resolver → ierarhie → răspuns → risc. DNS poate fi și o țintă de securitate, fiindcă un răspuns greșit poate trimite browserul la locul nepotrivit. Experimentul folosește numai domenii publice cunoscute și observare fără modificări; leagă fiecare rezultat `nslookup` de etapa corectă din diagramă."
   ],
   demo: {
     type: "flow",
@@ -295,7 +295,7 @@ const LESSONS_C = [
     "HTTP este un protocol, adică un set de reguli pentru comunicarea web. O cerere are o metodă, o cale și antete; `GET /despre` cere o resursă. Răspunsul are un cod de status: 2xx indică succes, 4xx o problemă a cererii sau accesului, iar 5xx o problemă întâlnită de server.",
     "HTTPS este HTTP transportat prin TLS, un mecanism care verifică certificatul domeniului și criptează schimbul. Criptarea face mai greu ca cineva de pe drum să citească sau să schimbe datele. Lacătul confirmă protecția conexiunii, nu adevărul sau bunătatea fiecărei informații de pe site.",
     "Urmărește o cerere pas cu pas în fila Network: browserul cere `index.html`, serverul răspunde cu 200, apoi browserul cere CSS și imagini. Dacă introduci o cale inventată, primești de obicei 404; dacă serverul nu poate lucra, poate apărea 500. Metoda, URL-ul, statusul și tipul resursei spun povestea.",
-    "O confuzie frecventă este să crezi că 404 înseamnă că internetul a căzut sau că HTTPS înseamnă site sigur în orice sens. De asemenea, codurile pot fi ascunse de interfață și pot exista redirecționări. Inspectează doar pagini proprii sau publice, fără parole, carduri ori date personale.",
+    "O confuzie frecventă este să crezi că 404 înseamnă că internetul a căzut sau că HTTPS înseamnă site sigur în orice sens. De exemplu, când cauți o rețetă și primești 404, problema poate fi doar adresa greșită, nu conexiunea. De asemenea, codurile pot fi ascunse de interfață și pot exista redirecționări. Inspectează doar pagini proprii sau publice, fără parole, carduri ori date personale.",
     "Demo-ul „Codurile lui HTTP” leagă fiecare status de o situație, iar fila Network din experiment arată cererea reală. Alege o resursă locală, urmărește cerere → răspuns și compară codul din browser cu jurnalul serverului propriu."
   ],
   demo: {
@@ -363,7 +363,7 @@ const LESSONS_C = [
     "Un server web este programul care trimite fișierele unei pagini atunci când un browser le cere. În acest proiect lucrezi local, pe Pi sau VM controlat de familie, pentru ca procesul să fie observabil fără expunere publică. HTML descrie structura, iar CSS descrie aspectul.",
     "HTML folosește elemente precum `<h1>` pentru titlu, `<p>` pentru paragraf, `<ul>` pentru listă și `<img>` pentru imagine. CSS poate schimba culori, spații și dimensiuni, dar nu transformă singur o pagină într-un serviciu securizat. Browserul citește fișierele în ordinea cerută.",
     "Construiește pas cu pas: creează `index.html`, verifică titlul în browser, adaugă paragraful, leagă `style.css`, apoi copiază fișierele în directorul servit. Când browserul face cererea, serverul răspunde, iar tu vezi rezultatul. Modifică o singură idee, salvează, reîncarcă și notează schimbarea.",
-    "O limită este că pagina locală funcționează doar cât timp serverul și rețeaua sunt disponibile; ea nu devine automat publică. Nu deschide porturi și nu include adresa casei, nume complete, fotografii fără acord sau parole. O imagine poate avea metadata, deci folosește desene ori materiale permise.",
+    "O limită este că pagina locală funcționează doar cât timp serverul și rețeaua sunt disponibile; ea nu devine automat publică. De exemplu, un afiș despre clubul de șah poate fi vizibil familiei în rețeaua locală fără să publice adresa casei sau programul copilului. Nu deschide porturi și nu include adresa casei, nume complete, fotografii fără acord sau parole. O imagine poate avea metadata, deci folosește desene ori materiale permise.",
     "Demo-ul „De la fișier text la site live” arată scrii → stilizezi → publici → vizitezi → iterezi. Urmărește fiecare pas pe serverul propriu, apoi verifică în Network că browserul cere HTML, CSS și imaginea, fără să părăsești rețeaua locală."
   ],
   demo: {
@@ -646,7 +646,7 @@ const LESSONS_C = [
   explanation: [
     "Cloud-ul este folosirea unor servicii de calcul oferite prin rețea de calculatoare reale din centre de date. Stocarea în cloud înseamnă că fișierele ajung pe serverele unui furnizor; puterea de calcul înseamnă că programul rulează acolo, nu doar pe laptopul tău. „Norul” este o metaforă, nu un loc magic.",
     "Îl folosim pentru spațiu, disponibilitate și scalare, adică posibilitatea de a crește resursele când apar mai mulți utilizatori. Furnizorul întreține clădirea, rețeaua și hardware-ul, dar tu rămâi responsabil de conturi, permisiuni și alegerile de date. Serviciul poate avea cost, reguli și limite.",
-    "Compară aceeași aplicație în trei locuri: local, pe serverul familiei și în cloud. Pentru fiecare întreabă: cine administrează hardware-ul, cine poate vedea datele, cât costă, ce se întâmplă fără internet și unde este backup-ul. Această comparație transformă metafora într-o decizie concretă.",
+    "Compară aceeași aplicație în trei locuri: local, pe serverul familiei și în cloud. Un exemplu simplu este un album foto: local îl vezi pe laptop, pe serverul familiei îl partajezi în casă, iar în cloud îl poți accesa și din alt loc, dar depinzi de cont și internet. Pentru fiecare întreabă: cine administrează hardware-ul, cine poate vedea datele, cât costă, ce se întâmplă fără internet și unde este backup-ul. Această comparație transformă metafora într-o decizie concretă.",
     "O limită este că cloud-ul nu elimină întreruperile, distanța sau riscul de pierdere a contului. Un serviciu gratuit poate fi plătit prin reclame sau folosirea datelor, iar sincronizarea nu este totuna cu o copie de siguranță. Nu încărca poze private, parole sau date de familie în experiment.",
     "Demo-ul „Cloud: adevărat sau fals?” înlocuiește norul cu centre de date, costuri și responsabilități. În experiment, completează tabelul pentru local/Pi/cloud și leagă fiecare observație de avantajul sau limita arătată de quiz."
   ],
@@ -735,7 +735,7 @@ const LESSONS_C = [
     steps: [
       "Scrie funcția de conectare și CREATE TABLE jocuri (id, titlu, gen, an, nota) în `catalog-test.db`. Testează că fișierul apare și fă o copie `catalog-test-backup.db`.",
       "Adaugă funcția adauga() cu input-uri și INSERT parametrizat. Rulează, apoi verifică baza cu sqlite3 din terminal — rândul fictiv este acolo?",
-      "Adaugă afiseaza_toate() cu SELECT * și un for care printează frumos fiecare rând.",
+      "Adaugă `afiseaza_toate()` cu SELECT * și un for care printează frumos fiecare rând.",
       "Construiește bucla meniului (while True + input + if/elif). Primul program complet al tău!",
       "TESTE: adaugă 5 jocuri fictive, închide programul, redeschide-l și verifică rândurile. Testează și restaurarea copiei într-un dosar separat."
     ],
@@ -1371,8 +1371,8 @@ const LESSONS_C = [
     steps: [
       "Asamblează șasiul: motoare, roți, roată liberă (sau bila) față. Deja arată a robot!",
       "Conectează: baterii → driver, driver → motoare, ESP32 → pinii de comandă ai driverului. GND comun peste tot!",
-      "Scrie funcțiile: inainte(), inapoi(), stanga(), dreapta(), stop(). Fiecare = câteva digitalWrite pe pini.",
-      "Test pe podea: inainte 2 secunde, stop. MERGE DREPT? (Un motor e mereu mai rapid — notează diferența!)",
+      "Scrie funcțiile: `inainte()`, `inapoi()`, `stanga()`, `dreapta()`, `stop()`. Fiecare = câteva digitalWrite pe pini.",
+      "Test pe podea: `inainte` 2 secunde, stop. MERGE DREPT? (Un motor e mereu mai rapid — notează diferența!)",
       "Corectura: ajustează vitezele (PWM sau timpi) până merge drept. Prima ta calibrare de robot!"
     ],
     expected: "Șasiu care execută toate cele 5 mișcări + înțelegerea diferenței dintre motoare."
@@ -1381,7 +1381,7 @@ const LESSONS_C = [
     title: "Dansul robotului",
     goal: "Programează o coregrafie de 60 de secunde: robotul „dansează” pe o melodie, doar din funcțiile tale de mișcare.",
     steps: [
-      "Compune coregrafia pe hârtie: secvență de mișcări cu durate (ex: inainte 1s, stânga 0.4s...).",
+      "Compune coregrafia pe hârtie: secvență de mișcări cu durate (ex: `inainte` 1s, stânga 0.4s...).",
       "Programeaz-o și testeaz-o de 10 ori. Roboții reali nu sunt perfecți — adaptează duratele!",
       "Adaugă un LED care pulsează și buzzer care „cântă” ritmul.",
       "Spectacol pentru familie + filmare. Primul videoclip din cariera robotului."
@@ -1421,7 +1421,7 @@ const LESSONS_C = [
     "Senzorul ultrasonic trimite un impuls de sunet și măsoară timpul până la ecou; distanța aproximativă este viteză × timp / 2, fiindcă sunetul merge și se întoarce. Pragul este limita la care robotul schimbă comportamentul. Un algoritm este o succesiune de pași care transformă măsurarea în decizie.",
     "Analogia este un strigăt într-o peșteră: auzi ecoul mai repede de la un perete apropiat. Dar materialul moale absoarbe, suprafața înclinată reflectă în altă direcție, iar temperatura schimbă viteza sunetului. Senzorul nu vede ca omul, ci estimează folosind un semnal și un model simplu.",
     "Exemplu lucrat: pentru ecou de 3 ms și viteză aproximativă 343 m/s, calculăm 343 × 0,003 / 2 = 0,5145 m, adică circa 51 cm. Dacă pragul este 25 cm, continuăm; la 18 cm, oprim, mergem încet înapoi, virăm și remăsurăm. Nu reluăm mersul până nu avem o citire sigură.",
-    "Greșeala este folosirea unei singure citiri sau creșterea pragului până când robotul pare că nu se lovește. Un prag prea mare poate bloca misiunea, unul prea mic poate întârzia oprirea. Testăm doar cutii și obiecte ușoare pe pistă delimitată, cu viteză mică, joasă tensiune și adultul lângă oprire; nu testăm pe oameni sau animale.",
+    "Greșeala este folosirea unei singure citiri sau creșterea pragului până când robotul pare că nu se lovește. Testează sistematic pe materiale diferite și ajustează pragurile după tabelul de măsurători, nu după impresie. Un prag prea mare poate bloca misiunea, unul prea mic poate întârzia oprirea. Testăm doar cutii și obiecte ușoare pe pistă delimitată, cu viteză mică, joasă tensiune și adultul lângă oprire; nu testăm pe oameni sau animale.",
     "Demo-ul „Creierul anti-accident” arată ping, distanță, mers, prag și manevră. Calculează împreună cu copilul valoarea de 51 cm, apoi schimbă în demo la 18 cm și urmărește de ce apare STOP. Acest traseu devine direct codul și tabelul de teste cu materiale diferite."
   ],
   demo: {
