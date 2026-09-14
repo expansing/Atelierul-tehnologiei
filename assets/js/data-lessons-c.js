@@ -48,7 +48,7 @@ const LESSONS_C = [
       "Marchează ce părți pot adăuga întârziere: Wi-Fi, router, distanță sau server.",
       "Explică prudent: dacă o rută devine indisponibilă, rețeaua poate găsi altă rută, dar nu este garantat pentru fiecare pachet sau serviciu."
     ],
-    success: ["Diagramă cu toate cele 8 etape", "IP-uri și timpi reali notați", "Explicația rezilienței rețelei"]
+    success: ["Diagramă cu toate cele 7 etape", "IP-uri și timpi reali notați", "Explicația rezilienței rețelei"]
   },
   questions: [
     "De ce e internetul făcut din multe drumuri și nu unul singur?",
@@ -67,7 +67,7 @@ const LESSONS_C = [
     redflags: ["Copilul crede că site-urile „locuiesc” în browser — clarificați cu analogia scrisorii"]
   },
   pass: [
-    "Recitește cele 8 etape din memorie",
+    "Recitește cele 7 etape din memorie",
     "Rulează și interpretează ping, nslookup, traceroute",
     "Explică de ce pachetele pot ocoli un router căzut"
   ]
