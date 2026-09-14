@@ -19,6 +19,7 @@ Data scanării: 2026-09-14
 - [x] Smoke test static pentru maparea celor 69 de scene vizuale.
 - [x] Scene vizuale cu semnătură unică pentru fiecare lecție.
 - [x] Audit ortografic extins la toate câmpurile lecției (titlu, demo, experiment, proiect, criterii).
+- [x] Audit ortografic extins la sursele nescanate anterior: ghidurile de demo (`DEMO_GUIDES_A-D`), conținutul explicativ structurat (`EXPLANATION_CONTENT`, termeni/verificări/blocuri) și metadatele nivelurilor (`data-levels.js`). Peste 150 de greșeli reale de diacritice și câteva erori de gramatică (infinitiv vs. conjugare, forme nehotărâte/hotărâte) au fost corectate manual în toate cele 4 fișiere `demo-guides-*.js`.
 - [x] Corectat contrastul temei întunecate: fundalurile fixe albe din explicație și scenele individuale folosesc acum variabile de temă.
 - [x] Audit browser automat persistent în repository pentru interacțiuni și viewport-uri.
 

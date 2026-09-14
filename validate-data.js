@@ -35,6 +35,39 @@ const SUPPORTED_VISUAL_KINDS = new Set([
   'dns', 'data', 'cloud', 'circuit', 'microcontroller', 'sensor', 'iot', 'motor', 'robot',
   'security', 'virtual', 'ai', 'critical', 'weather', 'smart', 'vision'
 ]);
+const FORBIDDEN_WORDS = {
+  'Apasa': 'Apasă', 'apasa': 'apasă', 'Daca': 'Dacă', 'daca': 'dacă',
+  'Fara': 'Fără', 'fara': 'fără', 'Inainte': 'Înainte', 'inainte': 'înainte',
+  'siguranta': 'siguranță', 'Siguranta': 'Siguranță', 'retea': 'rețea', 'Retea': 'Rețea',
+  'pastram': 'păstrăm', 'Pastram': 'Păstrăm', 'afiseaza': 'afișează', 'Afiseaza': 'Afișează',
+  'protejeaza': 'protejează', 'Protejeaza': 'Protejează', 'cauta': 'caută', 'Cauta': 'Caută',
+  'foloseste': 'folosește', 'Foloseste': 'Folosește', 'temporara': 'temporară', 'Temporara': 'Temporară',
+  'intelege': 'înțelege', 'Intelege': 'Înțelege', 'intelegere': 'înțelegere', 'invata': 'învață', 'Invata': 'Învață',
+  'invatare': 'învățare', 'Invatare': 'Învățare', 'masina': 'mașina', 'Masina': 'Mașina',
+  'genereaza': 'generează', 'Genereaza': 'Generează', 'scoala': 'școala', 'Scoala': 'Școala',
+  'impreuna': 'împreună', 'Impreuna': 'Împreună', 'romana': 'română', 'Romana': 'Română',
+  'strain': 'străin', 'Strain': 'Străin', 'depaseste': 'depășește', 'Depaseste': 'Depășește',
+  'incepe': 'începe', 'Incepe': 'Începe', 'inceput': 'început', 'Inceput': 'Început',
+  'intrebare': 'întrebare', 'Intrebare': 'Întrebare', 'intamplat': 'întâmplat', 'Intamplat': 'Întâmplat',
+  'Urmeaza': 'Urmează', 'urmeaza': 'urmează', 'Dupa': 'După', 'dupa': 'după',
+  'aparea': 'apărea', 'Aparea': 'Apărea', 'gasesti': 'găsești', 'Gasesti': 'Găsești',
+  'Imagineaza': 'Imaginează', 'imagineaza': 'imaginează', 'hotaraste': 'hotărăște', 'Hotaraste': 'Hotărăște',
+  'controleaza': 'controlează', 'Controleaza': 'Controlează', 'urias': 'uriaș', 'Urias': 'Uriaș',
+  'stim': 'știm', 'Stim': 'Știm', 'reala': 'reală', 'Reala': 'Reală', 'indemana': 'îndemână',
+  'informatia': 'informația', 'Informatia': 'Informația', 'informatie': 'informație', 'Informatie': 'Informație',
+  'solutia': 'soluția', 'Solutia': 'Soluția', 'solutie': 'soluție', 'Solutie': 'Soluție',
+  'pozitiile': 'pozițiile', 'Pozitiile': 'Pozițiile', 'pozitia': 'poziția', 'Pozitia': 'Poziția',
+  'bitilor': 'biților', 'aprinsi': 'aprinși', 'Aprinsi': 'Aprinși', 'biti': 'biți', 'Biti': 'Biți',
+  'pastrat': 'păstrat', 'Pastrat': 'Păstrat', 'pastreaza': 'păstrează', 'Pastreaza': 'Păstrează',
+  'construiesti': 'construiești', 'Construiesti': 'Construiești'
+};
+function scanForbiddenWords(text, contextLabel) {
+  Object.keys(FORBIDDEN_WORDS).forEach(word => {
+    if (new RegExp('(^|[^A-Za-zĂÂÎȘȚăâîșț])' + word + '([^A-Za-zĂÂÎȘȚăâîșț]|$)').test(text)) {
+      problem('Ortografie: folosește „' + FORBIDDEN_WORDS[word] + '” în loc de „' + word + '” la ' + contextLabel);
+    }
+  });
+}
 console.log('Nivele:', LEVELS.length, '| Lectii:', L.length);
 const ids = new Set();
 const visualSignatures = new Map();
@@ -185,26 +218,7 @@ function validateRomanianCopy(lesson) {
     ...(Array.isArray(lesson.pass) ? lesson.pass : []),
     ...(lesson.parent ? [...(lesson.parent.watch || []), ...(lesson.parent.help || []), ...(lesson.parent.redflags || [])] : [])
   ].filter(isNonEmptyString).join(' ').replace(/`[^`]*`/g, ' ');
-  const forbidden = {
-    'Apasa': 'Apasă', 'apasa': 'apasă', 'Daca': 'Dacă', 'daca': 'dacă',
-    'Fara': 'Fără', 'fara': 'fără', 'Inainte': 'Înainte', 'inainte': 'înainte',
-    'siguranta': 'siguranță', 'Siguranta': 'Siguranță', 'retea': 'rețea', 'Retea': 'Rețea',
-    'pastram': 'păstrăm', 'Pastram': 'Păstrăm', 'afiseaza': 'afișează', 'Afiseaza': 'Afișează',
-    'protejeaza': 'protejează', 'Protejeaza': 'Protejează', 'cauta': 'caută', 'Cauta': 'Caută',
-    'foloseste': 'folosește', 'Foloseste': 'Folosește', 'temporara': 'temporară', 'Temporara': 'Temporară',
-    'intelege': 'înțelege', 'Intelege': 'Înțelege', 'intelegere': 'înțelegere', 'invata': 'învață', 'Invata': 'Învață',
-    'invatare': 'învățare', 'Invatare': 'Învățare', 'masina': 'mașina', 'Masina': 'Mașina',
-    'genereaza': 'generează', 'Genereaza': 'Generează', 'scoala': 'școala', 'Scoala': 'Școala',
-    'impreuna': 'împreună', 'Impreuna': 'Împreună', 'romana': 'română', 'Romana': 'Română',
-    'strain': 'străin', 'Strain': 'Străin', 'depaseste': 'depășește', 'Depaseste': 'Depășește',
-    'incepe': 'începe', 'Incepe': 'Începe', 'inceput': 'început', 'Inceput': 'Început',
-    'intrebare': 'întrebare', 'Intrebare': 'Întrebare', 'intamplat': 'întâmplat', 'Intamplat': 'Întâmplat'
-  };
-  Object.keys(forbidden).forEach(word => {
-    if (new RegExp('(^|[^A-Za-zĂÂÎȘȚăâîșț])' + word + '([^A-Za-zĂÂÎȘȚăâîșț]|$)').test(copy)) {
-      problem('Ortografie: folosește „' + forbidden[word] + '” în loc de „' + word + '” la ' + lesson.id);
-    }
-  });
+  scanForbiddenWords(copy, lesson.id);
 }
 function validateTerm(term, lessonId, index, seenNames) {
   if (!term || typeof term !== 'object') {
@@ -305,6 +319,24 @@ for (const typo of ['Demonstatia', 'Apesi', 'Sasiul', 'preciser', 'larghe', 'uit
     console.log('Forma interzisa in ghiduri:', typo);
     bad++;
   }
+}
+for (const lessonId of Object.keys(DEMO_GUIDES)) {
+  scanForbiddenWords(Object.values(DEMO_GUIDES[lessonId]).join(' '), 'ghidul demo-ului ' + lessonId);
+}
+for (const lessonId of Object.keys(EXPLANATION_CONTENT)) {
+  const extras = EXPLANATION_CONTENT[lessonId];
+  const parts = [];
+  (extras.terms || []).forEach(term => { parts.push(...(term.names || [])); parts.push(term.definition); });
+  (extras.checks || []).forEach(check => { parts.push(check.q, check.why); parts.push(...(check.options || [])); });
+  (extras.blocks || []).forEach(block => {
+    parts.push(block.title, block.body, block.formula);
+    parts.push(...(block.steps || []));
+    (block.items || []).forEach(item => parts.push(item && item.title, item && item.body));
+  });
+  scanForbiddenWords(parts.filter(isNonEmptyString).join(' '), 'conținutul explicativ ' + lessonId);
+}
+for (const lv of LEVELS) {
+  scanForbiddenWords([lv.title, lv.desc, lv.tagline].filter(isNonEmptyString).join(' '), 'nivelul ' + lv.n);
 }
 validateLessonIndex(L, LEVELS);
 for (const l of L) {
